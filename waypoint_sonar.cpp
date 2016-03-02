@@ -13,41 +13,37 @@ class Listener
     {
     public : nav_msgs::Odometry last_msg;
         bool test;
-        void Callback(const nav_msgs::Odometry& msg) {last_msg = msg; test = true;};
+        void Callback(const nav_msgs::Odometry& msg) {last_msg = msg; test = true;}
         };
 
 int main(int argc, char **argv) {
 
     Listener listener;
 
-    ros::init(argc, argv, "waypoint_node");
+    ros::init(argc, argv, "waypoint_node_block");
     ros::NodeHandle nh;
     ros::Subscriber sub = nh.subscribe("/ecn_auv/state", 1, & Listener::Callback, & listener);
     ros::Publisher publisher = nh.advertise<freefloating_gazebo::BodySetpoint>("/ecn_auv/body_setpoint", 1);
     ros::Rate loop_rate(100);
 
     int traj ;
-    cout<<"Choose trajectory"<<endl
-        <<"0 = straight line"<<endl
-        <<"1 = straight line2"<<endl
-        <<"2 = big straight line"<<endl
-        <<"3 = Square plop2"<<endl;
+    cout<<endl<<"Choose trajectory"<<endl
+        <<"   0 = straight line X"<<endl
+        <<"   1 = straight line Y over containers"<<endl
+        <<"   2 = straight line Y over boat"<<endl
+        <<"   3 = square plop2"<<endl;
     cin>>traj;
     int indice = 0;
     int n_points=0;
+    bool first = true;
     freefloating_gazebo::BodySetpoint cmd[16];
 
     switch(traj){
 
-
-
-    // pour faire une ligne droite
-
-          case 0 :
-        n_points=4;
-
+        case 0 :
+        n_points=2;
         cmd[0].pose.position.x = -20;
-        cmd[0].pose.position.y = 5;
+        cmd[0].pose.position.y = 6;
         cmd[0].pose.position.z = -10;
         cmd[0].pose.orientation.x = 0;
         cmd[0].pose.orientation.y = 0;
@@ -55,98 +51,50 @@ int main(int argc, char **argv) {
         cmd[0].pose.orientation.w = 1;
 
         cmd[1].pose.position.x = 20;
-        cmd[1].pose.position.y = 5;
+        cmd[1].pose.position.y = 6;
         cmd[1].pose.position.z = -10;
         cmd[1].pose.orientation.x = 0;
         cmd[1].pose.orientation.y = 0;
         cmd[1].pose.orientation.z = 0;
         cmd[1].pose.orientation.w = 1;
-
-        cmd[2].pose.position.x = 20;
-        cmd[2].pose.position.y = 5;
-        cmd[2].pose.position.z = -10;
-        cmd[2].pose.orientation.x = 0;
-        cmd[2].pose.orientation.y = 0;
-        cmd[2].pose.orientation.z = 0;
-        cmd[2].pose.orientation.w = 1;
-
-        cmd[3].pose.position.x = -20;
-        cmd[3].pose.position.y = 5;
-        cmd[3].pose.position.z = -10;
-        cmd[3].pose.orientation.x = 0;
-        cmd[3].pose.orientation.y = 0;
-        cmd[3].pose.orientation.z = 0;
-        cmd[3].pose.orientation.w = 1;
         break;
 
         case 1 :
-        n_points=4;
+        n_points=2;
         cmd[0].pose.position.x = 0;
-        cmd[0].pose.position.y = -20;
-        cmd[0].pose.position.z = -5;
-        cmd[0].pose.orientation.x = 0;
-        cmd[0].pose.orientation.y = 1;
-        cmd[0].pose.orientation.z = 1;
-        cmd[0].pose.orientation.w = 0;
+        cmd[0].pose.position.y = -10;
+        cmd[0].pose.position.z = -10;
+        cmd[0].pose.orientation.x = 1/sqrt(2);
+        cmd[0].pose.orientation.y = 1/sqrt(2);
+        cmd[0].pose.orientation.z = 1/sqrt(2);
+        cmd[0].pose.orientation.w = 1/sqrt(2);
 
         cmd[1].pose.position.x = 0;
-        cmd[1].pose.position.y = 20;
-        cmd[1].pose.position.z = -5;
-        cmd[1].pose.orientation.x = 0;
-        cmd[1].pose.orientation.y = 1;
-        cmd[1].pose.orientation.z = 1;
-        cmd[1].pose.orientation.w = 0;
-
-        cmd[2].pose.position.x = 0;
-        cmd[2].pose.position.y = 20;
-        cmd[2].pose.position.z = -5;
-        cmd[2].pose.orientation.x = 0;
-        cmd[2].pose.orientation.y = 1;
-        cmd[2].pose.orientation.z = 1;
-        cmd[2].pose.orientation.w = 0;
-
-        cmd[3].pose.position.x = 0;
-        cmd[3].pose.position.y = -20;
-        cmd[3].pose.position.z = -5;
-        cmd[3].pose.orientation.x = 0;
-        cmd[3].pose.orientation.y = 1;
-        cmd[3].pose.orientation.z = 1;
-        cmd[3].pose.orientation.w = 0;
+        cmd[1].pose.position.y = 15;
+        cmd[1].pose.position.z = -10;
+        cmd[1].pose.orientation.x = 1/sqrt(2);
+        cmd[1].pose.orientation.y = 1/sqrt(2);
+        cmd[1].pose.orientation.z = 1/sqrt(2);
+        cmd[1].pose.orientation.w = 1/sqrt(2);
         break;
 
         case 2 :
-        n_points=4;
-        cmd[0].pose.position.x = -30;
-        cmd[0].pose.position.y = -30;
-        cmd[0].pose.position.z = -5;
-        cmd[0].pose.orientation.x = 0;
-        cmd[0].pose.orientation.y = 0;
-        cmd[0].pose.orientation.z = 0.38268343236;
-        cmd[0].pose.orientation.w = 0.92387953251;
+        n_points=2;
+        cmd[0].pose.position.x = 11;
+        cmd[0].pose.position.y = 0;
+        cmd[0].pose.position.z = -7;
+        cmd[0].pose.orientation.x = 1/sqrt(2);
+        cmd[0].pose.orientation.y = 1/sqrt(2);
+        cmd[0].pose.orientation.z = 1/sqrt(2);
+        cmd[0].pose.orientation.w = 1/sqrt(2);
 
-        cmd[1].pose.position.x = 30;
-        cmd[1].pose.position.y = 30;
-        cmd[1].pose.position.z = -5;
-        cmd[1].pose.orientation.x = 0;
-        cmd[1].pose.orientation.y = 0;
-        cmd[1].pose.orientation.z = 0.38268343236;
-        cmd[1].pose.orientation.w = 0.92387953251;;
-
-        cmd[2].pose.position.x = 30;
-        cmd[2].pose.position.y = 30;
-        cmd[2].pose.position.z = -5;
-        cmd[2].pose.orientation.x = 0;
-        cmd[2].pose.orientation.y = 0;
-        cmd[2].pose.orientation.z = 0.38268343236;
-        cmd[2].pose.orientation.w = 0.92387953251;;
-
-        cmd[3].pose.position.x = -30;
-        cmd[3].pose.position.y = -30;
-        cmd[3].pose.position.z = -5;
-        cmd[3].pose.orientation.x = 0;
-        cmd[3].pose.orientation.y = 0;
-        cmd[3].pose.orientation.z = 0.38268343236;
-        cmd[3].pose.orientation.w = 0.92387953251;
+        cmd[1].pose.position.x = 11;
+        cmd[1].pose.position.y = 25;
+        cmd[1].pose.position.z = -7;
+        cmd[1].pose.orientation.x = 1/sqrt(2);
+        cmd[1].pose.orientation.y = 1/sqrt(2);
+        cmd[1].pose.orientation.z = 1/sqrt(2);
+        cmd[1].pose.orientation.w = 1/sqrt(2);
         break;
 
 
@@ -297,12 +245,15 @@ int main(int argc, char **argv) {
         float diff = (cmd[indice].pose.position.x-x)*(cmd[indice].pose.position.x-x)+(cmd[indice].pose.position.y-y)*(cmd[indice].pose.position.y-y)+(cmd[indice].pose.position.z-z)*(cmd[indice].pose.position.z-z);
         float diffo = (cmd[indice].pose.orientation.x-ox)*(cmd[indice].pose.orientation.x-ox)+(cmd[indice].pose.orientation.y-oy)*(cmd[indice].pose.orientation.y-oy);
         diffo = diffo+(cmd[indice].pose.orientation.z-oz)*(cmd[indice].pose.orientation.z-oz)+(cmd[indice].pose.orientation.w-ow)*(cmd[indice].pose.orientation.w-ow);
-        //cout << "diff: " << diff << " - x: " << x << " - y: " << y << " - z: " << z << endl;
-        if((diff<1.)&&(diffo<0.2))
+        if (first == true){
+            cout << endl << "Going to the point #"<< indice << endl;
+            first = false;
+        }
+        if((diff<1))
         {
-                cout << "Arrived to the point number " << indice << endl;
+                cout << "Arrived to the point #" << indice << endl;
                 indice = (indice + 1) % n_points;
-                cout << "Going to the point number " << indice << endl;
+                cout << "Going to the point #" << indice << endl;
         }
 
         publisher.publish(cmd[indice]);
@@ -311,6 +262,6 @@ int main(int argc, char **argv) {
         loop_rate.sleep();
         }
 
-    cout << "clear" << endl;
+    cout <<endl << "clear" << endl;
     return 0;
 }

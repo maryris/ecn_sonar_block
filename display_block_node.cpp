@@ -25,28 +25,30 @@ class Listener
 int main(int argc, char **argv){
 
     Listener listener;
-    // cout << "Autoscale mode ?" << endl;
-    bool automode = true ;
-    // cin >> automode ;
 
-    ros::init(argc, argv, "display_node");
+    ros::init(argc, argv, "display_sonar_image");
     ros::NodeHandle nh;
     ros::Subscriber sub = nh.subscribe("/ecn_auv/sonar", 1, & Listener::Callback, & listener);
     ros::Rate loop_rate(100);
 
-    namedWindow("Sea Bed");
+    namedWindow("Sonar Image");
     startWindowThread();
 
     // Create black empty images
-    int sizey = 800;
-    int sizex = 700;
-    Mat display_image = Mat::zeros(sizey-250, sizex, CV_8UC3);
+    int sizey = 550;
+    int sizex = 500;
+    Mat display_image = Mat::zeros(sizey, sizex, CV_8UC3);
+
+    bool first = true ;
+    float y_i;
+    float z_i;
 
     while(ros::ok())
         {
         if (listener.test) {
 
             int nbpoints = listener.last_msg.points.size();
+            // Creating a randomly blue background
             for (int i=0 ; i<nbpoints ; i++){
                 float x = listener.last_msg.points[i].x;
                 float y = listener.last_msg.points[i].y;
@@ -54,25 +56,23 @@ int main(int argc, char **argv){
                 float intensity = listener.last_msg.channels[0].values[i];
                 float dist = sqrt(x*x+y*y+z*z);
 
-                float tone = 0.2*intensity/dist+rand()%20;
-                //Scalar noises = Scalar::all(tone);
+                float tone = 0.25*intensity/dist+rand()%5;
                 Scalar blues = Scalar(2.5*tone,tone,0.4*tone);
 
-                Scalar greyscale = Scalar::all(0.33*intensity/dist);
+                y_i = listener.last_msg.points[nbpoints-1].y;
+                z_i = listener.last_msg.points[nbpoints-1].z;
 
-                if (automode == true){
-                    int samples = 50 ;
-                    float y_i = listener.last_msg.points[nbpoints-1].y;
-                    float z_i = listener.last_msg.points[nbpoints-1].z;
-
-                    circle(display_image, Point(sizex/2+y*80/z_i, sizey/2+z*80/z_i), dist*0.5, blues ,-1,8,0);
-                    circle(display_image, Point(sizex/2+y_i*80/z_i, sizey/2+z_i*80/z_i), 2, Scalar::all(255) ,-1,8,0);
-                }
-                else{
-                    circle(display_image, Point(sizex/2-y*10, sizey/2-z*10), dist*0.1, blues ,-1,8,0);
-                }
-
+                int err = 1+0.8*dist ;
+                // With blobs
+                /// circle(display_image, Point(sizex/2-y*sizex/(7*y_i)+(rand() % err - err/2), 0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)), dist*0.5, blues ,-1,8,0);
+                // With pixels
+                rectangle(display_image,
+                          Point(sizex/2-y*sizex/(7*y_i)+(rand() % err - err/2)+dist*0.5, 0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)+dist*0.5),
+                          Point(sizex/2-y*sizex/(7*y_i)+(rand() % err - err/2)-dist*0.5, 0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)-dist*0.5),
+                          blues,-1,8,0);
             }
+
+            // Displaying the measures with an error
             for (int j=0 ; j<nbpoints ; j++){
                 float x = listener.last_msg.points[j].x;
                 float y = listener.last_msg.points[j].y;
@@ -80,30 +80,23 @@ int main(int argc, char **argv){
                 float intensity = listener.last_msg.channels[0].values[j];
                 float dist = sqrt(x*x+y*y+z*z);
 
-                float tone = 0.33*intensity/dist+rand()%20;
-                //Scalar noises = Scalar::all(tone);
+                float tone = 0.25*intensity/dist+rand()%20;
                 Scalar blues = Scalar(2.5*tone,tone,0.4*tone);
 
-                Scalar greyscale = Scalar::all(0.33*intensity/dist);
-
-                if (automode == true){
-                    int samples = 50 ;
-                    float y_i = listener.last_msg.points[nbpoints-1].y;
-                    float z_i = listener.last_msg.points[nbpoints-1].z;
-
-                    int err = 1+0.8*dist ;
-                    circle(display_image, Point(sizex/2+y*80/z_i+(rand() % err - err/2), sizey/2+z*80/z_i+(rand() % err - err/2)), dist*0.2, blues ,-1,8,0);
-                    circle(display_image, Point(sizex/2+y_i*80/z_i, sizey/2+z_i*80/z_i), 2, Scalar::all(255) ,-1,8,0);
+                if (first == true){
+                    y_i = listener.last_msg.points[nbpoints-1].y;
+                    z_i = listener.last_msg.points[nbpoints-1].z;
+                    first = false;
                 }
-                else{
-                    circle(display_image, Point(sizex/2-y*10, sizey/2-z*10), dist*0.1, blues ,-1,8,0);
-                }
+
+                int err = 1+0.8*dist ;
+                circle(display_image, Point(sizex/2-y*sizex/(7*y_i)+(rand() % err - err/2), 0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)), 2, blues ,-1,8,0);
 
             }
-            // Display
-            imshow("Sea Bed", display_image );
+            // Final display
+            imshow("Sonar Image", display_image );
             waitKey(100);
-            display_image = Mat::zeros(sizey-250, sizex, CV_8UC3);
+            display_image = Mat::zeros(sizey, sizex, CV_8UC3);
         }
 
         ros::spinOnce();
