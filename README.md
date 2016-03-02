@@ -1,3 +1,4 @@
-# ecn_sonar_block
+ecn_sonar
+=========
 
-Package ROS pour le projet de simulateur de sonar avec double ouverture angulaire
+Package ROS pour le projet de simulateur de sonar
