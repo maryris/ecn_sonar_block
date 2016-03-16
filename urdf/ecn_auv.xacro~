@@ -133,19 +133,19 @@
     <gazebo reference="base_link">
     <sensor name="sonar" type="ray">
         <visualize>false</visualize>
-        <pose>${body_length/3} 0 0 0 0.6 0</pose>
+        <pose>${body_length/3} 0 0 0 0.785398 0</pose>
         <update_rate>10</update_rate>
         <ray>
         <scan>
             <horizontal>
-            <samples>50</samples>
+            <samples>60</samples>
             <resolution>1</resolution>
             <min_angle>-0.5</min_angle>
             <max_angle>0.5</max_angle>
             </horizontal>
 <!--><-->
 	    <vertical>
-            	<samples>100</samples>
+            	<samples>120</samples>
                 <resolution>1.0</resolution>
                 <min_angle>-0.5</min_angle>
                 <max_angle>0.5</max_angle>

@@ -24,7 +24,6 @@ include_directories(
 ## Declare a C++ executable
 add_executable(waypoint_block waypoint_sonar.cpp)
 add_executable(display_block display_block_node.cpp)
-add_executable(grille grille.cpp)
 
 
 ## Specify libraries to link a library or executable target against

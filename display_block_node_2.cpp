@@ -1,15 +1,13 @@
 /*
- * name : display_block_node
+ * name : display_block_node_2
  * author : Marie SCHNEIDER (ECN)
  * date : 2016-03-16
  *
  * description : a ROS node for ecn_sonar_block
- *               displays a raw sonar-like image (with shadows)
- * 
- * remarks : autoscale based on 1st point detected
- *           if this point is uncommon, the image jumps temporarily
+ *               displays a sonar-like projected image
+ *
+ * remarks : only works with a block-sonar oriented at 45° and with angle limits from -0.5 to 0.5
 */
-
 
 
 #include <sstream>
@@ -40,7 +38,7 @@ int main(int argc, char **argv){
 
     Listener listener;
 
-    ros::init(argc, argv, "display_sonar_image");
+    ros::init(argc, argv, "display_sonar_image_2");
     ros::NodeHandle nh;
     ros::Subscriber sub = nh.subscribe("/ecn_auv/sonar", 1, & Listener::Callback, & listener);
     ros::Rate loop_rate(100);
@@ -49,13 +47,15 @@ int main(int argc, char **argv){
     startWindowThread();
 
     // Create black empty images
-    int sizey = 550;
-    int sizex = 500;
+    int sizey = 380;
+    int sizex = 600;
     Mat display_image = Mat::zeros(sizey, sizex, CV_8UC3);
 
     bool first = true ;
     float y_i;
     float z_i;
+
+    float coef = 250 ;
 
     while(ros::ok())
         {
@@ -76,18 +76,14 @@ int main(int argc, char **argv){
                 y_i = listener.last_msg.points[nbpoints-1].y;
                 z_i = listener.last_msg.points[nbpoints-1].z;
 
-                int err = 1+0.8*dist ;
                 // With blobs
-                /// circle(display_image, Point(sizex/2-y*sizex/(7*y_i)+(rand() % err - err/2), 0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)), dist*0.5, blues ,-1,8,0);
+                /// circle(display_image, Point(sizex/2+coef*y/x,sizey/2-coef*z/x), 5, blues ,-1,8,0);
                 // With pixels
-                rectangle(display_image,
-                          Point(sizex/2 // centered image
-                                -y*sizex/(7*y_i) // autoscale
-                                +(rand() % err - err/2) // random geometric error
-                                +dist*0.5, // background pixel size
-                                0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)+dist*0.5),
-                          Point(sizex/2-y*sizex/(7*y_i)+(rand() % err - err/2)-dist*0.5, 0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)-dist*0.5),
-                          blues,-1,8,0);
+                rectangle (display_image, Point(sizex/2-coef*y/(x-z)-0.5*dist, 0.8*sizey-coef*z/(x-z)-0.5*dist),
+                           Point(sizex/2 // centered image
+                                 -coef*y/(x-z) // projection on the real horizontal plane and enlargement
+                                 +0.5*dist // background pixel size
+                                 ,0.8*sizey-coef*z/(x-z)+0.5*dist), blues,-1,8,0);
             }
 
             // Displaying the measures with an error
@@ -108,9 +104,28 @@ int main(int argc, char **argv){
                 }
 
                 int err = 1+0.8*dist ;
-                circle(display_image, Point(sizex/2-y*sizex/(7*y_i)+(rand() % err - err/2), 0.7*sizey+z*sizey/(4.5*z_i)+(rand() % err - err/2)), 2, blues ,-1,8,0);
+                int rescy = 1 ;
+                int rescz = 1 ;
+                circle(display_image, Point(sizex/2-coef*y/(x-z)+rand()%4-2, 0.8*sizey-coef*z/(x-z)+rand()%4-2), 2, blues ,-1,8,0);
 
             }
+
+            // Mask
+
+            Point rook_points[2][3];
+            rook_points[0][0]  = Point(0,sizey);
+            rook_points[0][1]  = Point(0.335*sizex,sizey);
+            rook_points[0][2]  = Point(0,0);
+            rook_points[1][0]  = Point(0.655*sizex,sizey);
+            rook_points[1][1]  = Point(sizex-1,sizey);
+            rook_points[1][2]  = Point(sizex-1,0);
+            const Point* mask1[1] = { rook_points[0] };
+            const Point* mask2[1] = { rook_points[1] };
+            int npt[] = { 3 };
+
+            fillPoly(display_image,mask1,npt,1,Scalar::all(0),8);
+            fillPoly(display_image,mask2,npt,1,Scalar::all(0),8);
+
             // Final display
             imshow("Sonar Image", display_image );
             waitKey(100);
